@@ -1,35 +1,27 @@
-import { Button, Grid, Table, Text, useTheme } from "@nextui-org/react";
-import React, { useContext, useEffect, useState } from "react";
-import { TranslationContext } from "../../pages/_app";
+import { Grid, Text } from "@nextui-org/react";
+import React, { useEffect, useState } from "react";
 import DashboardCard from "./components/dashboard-card/DashboardCard";
-import { MISSING_TRANSLATION } from "../../core/const";
-import { DashboardCardTranslations } from "../../pages/api/translations";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faEye,
-  faPencil,
-  faRocket,
-  faTrash,
-} from "@fortawesome/free-solid-svg-icons";
-import { Bundle, CodeSystem } from "fhir/r4";
-import { SearchSystem } from "./models/search-system";
+import { Bundle, CodeSystem, ConceptMap, ValueSet } from "fhir/r4";
+import { systems, System } from "./models/system";
 import DashboardToolbar from "./components/dashboard-toolbar/DashboardToolbar";
 import { CodeSystemService } from "../../core/services/code-system-service/code-system.service";
 import { ValueSetService } from "../../core/services/value-set-service/value-set.service";
 import { ConceptMapService } from "../../core/services/concept-map-service/concept-map.service";
+import { TranslationService } from "../../core/services/translation-service/translation.service";
+import { SearchService } from "../../core/services/search-service/search.service";
+import Table from "../../shared/components/table/Table";
 
-const Dashboard = () => {
-  const [searchSystem, setSearchSystem] = useState<SearchSystem>("codeSystem");
-  const [searchString, setSearchString] = useState<string>("");
+export default function Dashboard() {
+  const [system, setSystem] = useState<System>(systems[0]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<Bundle>();
-
+  const [results, setResults] = useState<Bundle>();
   const [codeSystemCount, setCodeSystemCount] = useState<number>();
   const [valueSetCount, setValueSetCount] = useState<number>();
   const [conceptMapCount, setConceptMapCount] = useState<number>();
+  const [tableRows, setTableRows] = useState<string[][]>([[""]]);
 
-  const translations = useContext(TranslationContext);
-  const currentTheme = useTheme();
+  const tableHeader = ["ResourceType", "Name", "Status", ""];
 
   useEffect(() => {
     CodeSystemService.getInstance()
@@ -45,39 +37,42 @@ const Dashboard = () => {
       .then((bundle) => setConceptMapCount(bundle.total));
   }, []);
 
-  const getCardTranslation = (key: string) => {
-    return (
-      translations?.dashboard.cards[key as keyof DashboardCardTranslations] ??
-      MISSING_TRANSLATION
-    );
-  };
+  useEffect(() => {
+    setSearchTerm("");
+    search("");
+  }, [system]);
 
-  const search = async () => {
+  useEffect(() => showResults(), [results]);
+
+  function search(search = searchTerm) {
     setIsSearching(true);
-    let result;
-    switch (searchSystem) {
-      case "codeSystem":
-        result = await CodeSystemService.getInstance().getCodeSystem(
-          searchString
-        );
-        break;
-      case "valueSet":
-        result = await ValueSetService.getInstance().getValueSet(searchString);
-        break;
-      case "conceptMap":
-        result = await ConceptMapService.getInstance().getConceptMap(
-          searchString
-        );
-        break;
-    }
-    setSearchResults(result);
+    SearchService.getInstance()
+      .search(system, search)
+      .then((result) => {
+        setResults(result);
+      });
+  }
+
+  function showResults() {
     setIsSearching(false);
-  };
+    if (results) {
+      const tableRows = results?.entry?.map((bundleEntry) => {
+        const resource = bundleEntry.resource as
+          | CodeSystem
+          | ConceptMap
+          | ValueSet;
+        return [resource?.resourceType, resource.name, resource.status, ""];
+      });
+      if (tableRows) {
+        setTableRows(tableRows as string[][]);
+      }
+    }
+  }
 
   return (
     <div>
       <Grid.Container gap={2}>
-        <Grid sm={7} alignItems="flex-start">
+        <Grid sm={12} alignItems="flex-start">
           <Grid.Container gap={2}>
             <Grid sm={12}>
               <Text h1 color="primary">
@@ -87,106 +82,61 @@ const Dashboard = () => {
             <Grid sm={12}>
               <DashboardToolbar
                 isSearching={isSearching}
-                searchSystem={searchSystem}
-                onSearchInput={(search) => setSearchString(search)}
+                searchSystem={system}
+                searchTerm={searchTerm}
+                onSearchInput={(search) => setSearchTerm(search)}
                 onSearchClick={() => search()}
-                onSearchSystemChange={(searchSystem) =>
-                  setSearchSystem(searchSystem)
-                }
+                onSystemChange={(system) => setSystem(system)}
+                onClearClick={() => search("")}
               />
             </Grid>
             <Grid sm={4}>
               <DashboardCard
-                title={getCardTranslation("codeSystemTitle")}
+                title={TranslationService.getInstance().getDashboardCardTranslations(
+                  "codeSystemTitle"
+                )}
                 count={codeSystemCount ?? 0}
                 isLoading={codeSystemCount === undefined}
               />
             </Grid>
             <Grid sm={4}>
               <DashboardCard
-                title={getCardTranslation("conceptMapTitle")}
+                title={TranslationService.getInstance().getDashboardCardTranslations(
+                  "conceptMapTitle"
+                )}
                 count={conceptMapCount ?? 0}
                 isLoading={conceptMapCount === undefined}
               />
             </Grid>
             <Grid sm={4}>
               <DashboardCard
-                title={getCardTranslation("valueSetTitle")}
+                title={TranslationService.getInstance().getDashboardCardTranslations(
+                  "valueSetTitle"
+                )}
                 count={valueSetCount ?? 0}
                 isLoading={valueSetCount === undefined}
               />
             </Grid>
           </Grid.Container>
         </Grid>
-        <Grid sm={5}>
-          <Grid.Container>
-            <Grid sm={12}>
-              <Text h1 color="primary" className="text-center w-full">
-                Daten
-              </Text>
-            </Grid>
-            <Grid sm={12}>
-              {searchResults?.entry ? (
-                <Table
-                  aria-label="Example table with static content"
-                  containerCss={{
-                    height: "auto",
-                    width: "100%",
-                    borderRadius: 0,
-                  }}
-                >
-                  <Table.Header>
-                    <Table.Column>ResourceType</Table.Column>
-                    <Table.Column>Name</Table.Column>
-                    <Table.Column>Status</Table.Column>
-                    <Table.Column></Table.Column>
-                  </Table.Header>
-                  <Table.Body>
-                    {searchResults.entry.map((bundleEntry) => {
-                      const resource = bundleEntry.resource as CodeSystem;
-                      return (
-                        <Table.Row key={resource.id}>
-                          <Table.Cell>{resource.resourceType}</Table.Cell>
-                          <Table.Cell>{resource.name}</Table.Cell>
-                          <Table.Cell>{resource.status}</Table.Cell>
-                          <Table.Cell>
-                            <div className="flex flex-row">
-                              <Button auto light size="md">
-                                <FontAwesomeIcon icon={faEye} />
-                              </Button>
-                              <Button auto light size="md">
-                                <FontAwesomeIcon icon={faPencil} />
-                              </Button>
-                              <Button auto light size="md" color="error">
-                                <FontAwesomeIcon icon={faTrash} />
-                              </Button>
-                            </div>
-                          </Table.Cell>
-                        </Table.Row>
-                      );
-                    })}
-                  </Table.Body>
-                </Table>
-              ) : (
-                <div className="text-center w-2/3 m-auto pt-16">
-                  <FontAwesomeIcon
-                    icon={faRocket}
-                    color={currentTheme.theme?.colors.primary.value}
-                    size="10x"
-                  />
-                  <Text h3>Keine Daten vorhanden</Text>
-                  <Text h4>
-                    Suche jetzt nach Daten über das Textfeld im Dashboard um die
-                    Ergebnisse hier angezeigt zu bekommen.
-                  </Text>
-                </div>
-              )}
-            </Grid>
-          </Grid.Container>
+      </Grid.Container>
+      <Grid.Container gap={2}>
+        <Grid sm={12}>
+          <Text h1 color="primary">
+            Daten
+          </Text>
+        </Grid>
+        <Grid sm={12}>
+          {results ? (
+            <Table
+              isLoading={isSearching}
+              header={tableHeader}
+              rows={tableRows}
+              resultCount={results?.total ?? 0}
+            />
+          ) : null}
         </Grid>
       </Grid.Container>
     </div>
   );
-};
-
-export default Dashboard;
+}

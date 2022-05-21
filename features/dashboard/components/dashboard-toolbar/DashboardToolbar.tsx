@@ -2,53 +2,49 @@ import { Button, Input, Loading } from "@nextui-org/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import React, { FunctionComponent, useContext } from "react";
-import { SearchSystem, searchSystems } from "../../models/search-system";
+import { System, systems } from "../../models/system";
 import { TranslationContext } from "../../../../pages/_app";
+import Tabs from "../../../../shared/components/tabs/Tabs";
 
-export interface IDashboardToolbar {
-  searchSystem: SearchSystem;
+export interface Props {
+  searchSystem: System;
   isSearching: boolean;
-  onSearchSystemChange: (searchSystem: SearchSystem) => void;
+  searchTerm: string;
+  onSystemChange: (searchSystem: System) => void;
   onSearchInput: (search: string) => void;
   onSearchClick: () => void;
+  onClearClick: () => void;
 }
 
-const DashboardToolbar: FunctionComponent<IDashboardToolbar> = ({
+export default function DashboardToolbar({
   searchSystem,
   isSearching,
-  onSearchSystemChange,
+  searchTerm,
+  onSystemChange,
   onSearchInput,
   onSearchClick,
-}) => {
-  const translations = useContext(TranslationContext);
-
-  const buttonSearchSystemClick = (searchSystem: SearchSystem) => {
-    onSearchSystemChange(searchSystem);
-  };
-
-  const isSearchSystemActive = (system: SearchSystem) => {
-    return searchSystem === system;
+  onClearClick,
+}: Props) {
+  const buttonSearchSystemClick = (searchSystem: System) => {
+    onSystemChange(searchSystem);
   };
 
   return (
     <>
-      <Button.Group>
-        {searchSystems.map((searchSystem) => (
-          <Button
-            key={searchSystem}
-            onClick={() => buttonSearchSystemClick(searchSystem)}
-            light={!isSearchSystemActive(searchSystem)}
-          >
-            {translations?.common[searchSystem]}
-          </Button>
-        ))}
-      </Button.Group>
+      <Tabs
+        values={systems}
+        activeValue={searchSystem}
+        onTabClick={(value) => buttonSearchSystemClick(value as System)}
+      />
       <Input
         clearable
+        value={searchTerm}
         placeholder="Suchen..."
         contentRight={
           isSearching ? (
-            <Loading type="spinner" size="sm" color="primary" />
+            <Button auto disabled>
+              <Loading type="spinner" size="sm" color="primary" />
+            </Button>
           ) : (
             <Button auto onClick={() => onSearchClick()}>
               <FontAwesomeIcon icon={faSearch} />
@@ -56,9 +52,8 @@ const DashboardToolbar: FunctionComponent<IDashboardToolbar> = ({
           )
         }
         onChange={(e) => onSearchInput(e.target.value)}
+        onClearClick={() => onClearClick()}
       />
     </>
   );
-};
-
-export default DashboardToolbar;
+}

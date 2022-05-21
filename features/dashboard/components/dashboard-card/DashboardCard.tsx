@@ -1,13 +1,14 @@
 import { Card, Loading, Text } from "@nextui-org/react";
-import React, { FunctionComponent } from "react";
-import { IDashboardCard } from "../../models/dashboard-card";
+import React from "react";
 import Link from "next/link";
 
-const DashboardCard: FunctionComponent<IDashboardCard> = ({
-  title,
-  count,
-  isLoading,
-}) => {
+interface Props {
+  title: string;
+  count: number;
+  isLoading: boolean;
+}
+
+function DashboardCard({ title, count, isLoading }: Props) {
   return (
     <Card cover css={{ borderRadius: 0, height: 200 }}>
       <Card.Header
@@ -32,6 +33,6 @@ const DashboardCard: FunctionComponent<IDashboardCard> = ({
       </Card.Header>
     </Card>
   );
-};
+}
 
 export default DashboardCard;

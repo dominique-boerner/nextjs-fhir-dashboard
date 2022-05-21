@@ -7,6 +7,7 @@ import React from "react";
 import { useFetchTranslations } from "../shared/hooks/use-fetch-translations/useFetchTranslations";
 import { Translations } from "./api/translations";
 import { lightTheme } from "../core/theme";
+import { TranslationService } from "../core/services/translation-service/translation.service";
 
 config.autoAddCss = false;
 
@@ -14,10 +15,11 @@ export const TranslationContext = React.createContext<Translations | undefined>(
   undefined
 );
 
-function MyApp({ Component, pageProps }: AppProps) {
+export default function MyApp({ Component, pageProps }: AppProps) {
   const translations = useFetchTranslations();
 
   if (translations) {
+    TranslationService.getInstance().setTranslations(translations);
     return (
       <TranslationContext.Provider value={translations}>
         <NextUIProvider theme={lightTheme}>
@@ -39,5 +41,3 @@ function MyApp({ Component, pageProps }: AppProps) {
     );
   }
 }
-
-export default MyApp;
