@@ -1,12 +1,8 @@
 import type { NextPage } from "next";
-import Dashboard from "../features/dashboard/Dashboard";
+import Dashboard from "../modules/dashboard/Dashboard";
 
 const Home: NextPage = () => {
-  return (
-    <div className="h-screen">
-      <Dashboard />
-    </div>
-  );
+  return <Dashboard />;
 };
 
 export default Home;

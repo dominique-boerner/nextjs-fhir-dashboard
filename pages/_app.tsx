@@ -4,10 +4,10 @@ import { Loading, NextUIProvider } from "@nextui-org/react";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import { config } from "@fortawesome/fontawesome-svg-core";
 import React from "react";
-import { useFetchTranslations } from "../shared/hooks/use-fetch-translations/useFetchTranslations";
+import { useFetchTranslations } from "../common/hooks/use-fetch-translations/useFetchTranslations";
 import { Translations } from "./api/translations";
-import { lightTheme } from "../core/theme";
-import { TranslationService } from "../core/services/translation-service/translation.service";
+import { lightTheme } from "../common/theme";
+import { TranslationService } from "services/translation-service/TranslationService";
 
 config.autoAddCss = false;
 
