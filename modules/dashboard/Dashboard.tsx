@@ -2,16 +2,11 @@ import { Grid, Text } from "@nextui-org/react";
 import React, { useEffect, useState } from "react";
 import DashboardCard from "./components/dashboard-card/DashboardCard";
 import { Bundle, CodeSystem, ConceptMap, ValueSet } from "fhir/r4";
-import { systems, System } from "./models/system";
+import { System, systems } from "./models/system";
 import DashboardToolbar from "./components/dashboard-toolbar/DashboardToolbar";
-import {
-  SearchService,
-  ValueSetService,
-  ConceptMapService,
-  TranslationService,
-  CodeSystemService,
-} from "services";
+import { SearchService, TranslationService } from "services";
 import { Table } from "components";
+import DashboardService from "./services/dashboard-service/DashboardService";
 
 export default function Dashboard() {
   const [system, setSystem] = useState<System>(systems[0]);
@@ -26,17 +21,17 @@ export default function Dashboard() {
   const tableHeader = ["ResourceType", "Name", "Status", ""];
 
   useEffect(() => {
-    CodeSystemService.getInstance()
-      .getCodeSystems()
-      .then((bundle) => setCodeSystemCount(bundle.total));
+    DashboardService.getInstance()
+      .getCodeSystemsCount()
+      .then((count) => setCodeSystemCount(count));
 
-    ValueSetService.getInstance()
-      .getValueSets()
-      .then((bundle) => setValueSetCount(bundle.total));
+    DashboardService.getInstance()
+      .getConceptMapsCount()
+      .then((count) => setConceptMapCount(count));
 
-    ConceptMapService.getInstance()
-      .getConceptMaps()
-      .then((bundle) => setConceptMapCount(bundle.total));
+    DashboardService.getInstance()
+      .getValueSetsCount()
+      .then((count) => setValueSetCount(count));
   }, []);
 
   useEffect(() => {
