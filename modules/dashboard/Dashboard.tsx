@@ -2,14 +2,14 @@ import { Grid, Text } from "@nextui-org/react";
 import React, { useEffect, useState } from "react";
 import DashboardCard from "./components/dashboard-card/DashboardCard";
 import { Bundle, CodeSystem, ConceptMap, ValueSet } from "fhir/r4";
-import { System, systems } from "./models/system";
+import {System, tabSystems} from "./models/system";
 import DashboardToolbar from "./components/dashboard-toolbar/DashboardToolbar";
 import { SearchService, TranslationService } from "services";
 import { Table } from "components";
 import DashboardService from "./services/dashboard-service/DashboardService";
 
 export default function Dashboard() {
-  const [system, setSystem] = useState<System>(systems[0]);
+  const [system, setSystem] = useState<System>(tabSystems[0].value);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<Bundle>();

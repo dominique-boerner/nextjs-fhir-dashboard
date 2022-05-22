@@ -1,9 +1,9 @@
-import { Button, Input, Loading } from "@nextui-org/react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSearch } from "@fortawesome/free-solid-svg-icons";
+import {Button, Input, Loading} from "@nextui-org/react";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faSearch} from "@fortawesome/free-solid-svg-icons";
 import React from "react";
-import { System, systems } from "../../models/system";
-import { Tabs } from "components";
+import {System, tabSystems} from "../../models/system";
+import {Tabs} from "components";
 
 export interface Props {
   searchSystem: System;
@@ -24,6 +24,9 @@ export default function DashboardToolbar({
   onSearchClick,
   onClearClick,
 }: Props) {
+
+
+
   const buttonSearchSystemClick = (searchSystem: System) => {
     onSystemChange(searchSystem);
   };
@@ -31,7 +34,7 @@ export default function DashboardToolbar({
   return (
     <>
       <Tabs
-        values={systems}
+        values={tabSystems}
         activeValue={searchSystem}
         onTabClick={(value) => buttonSearchSystemClick(value as System)}
       />
